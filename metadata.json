@@ -1,0 +1,6 @@
+{
+  "name": "Verb Hunt: Simple Past Challenge",
+  "description": "An interactive educational arcade game for matching 10 irregular base verbs with their simple past forms while avoiding 5 decoy verbs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

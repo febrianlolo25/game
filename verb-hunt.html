@@ -1,0 +1,1562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VERB HUNT: Simple Past Challenge</title>
+  <style>
+    /* ==========================================================================
+       VERB HUNT: SIMPLE PAST CHALLENGE
+       Self-contained educational arcade game — Zero external dependencies
+       ========================================================================== */
+
+    :root {
+      --bg-gradient: linear-gradient(145deg, #eaf4ff 0%, #f4f1ff 48%, #e8fcf8 100%);
+      --surface: rgba(255, 255, 255, 0.94);
+      --surface-solid: #ffffff;
+      --border-subtle: #dbe4f0;
+      --ink-primary: #0f172a;
+      --ink-secondary: #475569;
+      --ink-muted: #64748b;
+      --accent-primary: #2563eb;
+      --accent-primary-hover: #1d4ed8;
+      --accent-success: #059669;
+      --accent-success-bg: #ecfdf5;
+      --accent-warning: #d97706;
+      --accent-warning-bg: #fffbeb;
+      --accent-error: #dc2626;
+      --accent-error-bg: #fef2f2;
+      --shadow-panel: 0 10px 30px -8px rgba(15, 23, 42, 0.08);
+      --shadow-modal: 0 24px 60px -12px rgba(15, 23, 42, 0.22);
+      --font-display: ui-rounded, 'SF Pro Rounded', 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      --font-body: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --radius-sm: 10px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: var(--font-body);
+      color: var(--ink-primary);
+      background: var(--bg-gradient);
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Main full-viewport shell */
+    .app-shell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      height: 100vh;
+      width: 100%;
+      padding: 14px 18px 16px;
+      gap: 12px;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* ==========================================================================
+       1. GAME DASHBOARD (Header + Progress + Controls)
+       ========================================================================== */
+    .dashboard {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-panel);
+      padding: 12px 20px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 20px;
+      flex-shrink: 0;
+      z-index: 20;
+    }
+
+    .brand-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .game-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.35rem, 2.2vw, 1.85rem);
+      font-weight: 900;
+      letter-spacing: 0.03em;
+      line-height: 1.05;
+      color: var(--ink-primary);
+    }
+
+    .game-subtitle {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--ink-secondary);
+      line-height: 1.25;
+    }
+
+    /* Center Stats & Progress Bar */
+    .stats-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 560px;
+      width: 100%;
+      justify-self: center;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .metric-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: var(--radius-sm);
+      padding: 6px 10px;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      line-height: 1.2;
+    }
+
+    .metric-value {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-primary);
+      line-height: 1.25;
+    }
+
+    /* Progress Bar */
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #2563eb 0%, #06b6d4 55%, #10b981 100%);
+      border-radius: 9999px;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Dashboard Buttons */
+    .controls-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      min-height: 44px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: 1px solid transparent;
+      font-family: var(--font-display);
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      white-space: nowrap;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.14s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+    }
+
+    .btn:focus-visible {
+      outline: 3px solid #0f172a;
+      outline-offset: 2px;
+    }
+
+    .btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--accent-primary);
+      color: #ffffff;
+      box-shadow: 0 4px 0 #1e40af;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: #ffffff;
+      color: var(--ink-primary);
+      border-color: #cbd5e1;
+      box-shadow: 0 3px 0 #cbd5e1;
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+
+    .btn-muted {
+      background: #f1f5f9;
+      color: var(--ink-secondary);
+      border-color: #cbd5e1;
+      box-shadow: none;
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ==========================================================================
+       2. FEEDBACK BANNER
+       ========================================================================== */
+    .feedback-bar {
+      background: var(--surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 46px;
+      flex-shrink: 0;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .feedback-content {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--ink-primary);
+    }
+
+    .feedback-icon {
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .feedback-bar.is-success {
+      background: var(--accent-success-bg);
+      border-color: #6ee7b7;
+      color: #065f46;
+    }
+    .feedback-bar.is-success .feedback-content {
+      color: #065f46;
+    }
+
+    .feedback-bar.is-warning {
+      background: var(--accent-warning-bg);
+      border-color: #fcd34d;
+      color: #92400e;
+    }
+    .feedback-bar.is-warning .feedback-content {
+      color: #92400e;
+    }
+
+    .feedback-bar.is-error {
+      background: var(--accent-error-bg);
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+    .feedback-bar.is-error .feedback-content {
+      color: #991b1b;
+    }
+
+    .selection-action {
+      font-size: 0.84rem;
+      font-weight: 700;
+      color: var(--accent-primary);
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 5px 12px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: none;
+    }
+
+    .selection-action.visible {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+    }
+
+    .selection-action:hover {
+      background: #dbeafe;
+    }
+
+    /* ==========================================================================
+       3. FLOATING BUBBLE ARENA
+       ========================================================================== */
+    .arena-wrapper {
+      position: relative;
+      flex: 1;
+      min-height: 360px;
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      box-shadow: inset 0 2px 12px rgba(15, 23, 42, 0.04);
+      overflow: hidden;
+    }
+
+    .arena {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    /* Individual Floating Word Bubble */
+    .word-bubble {
+      position: absolute;
+      top: 0;
+      left: 0;
+      min-width: 96px;
+      min-height: 50px;
+      padding: 11px 22px;
+      border-radius: 9999px;
+      border: 2px solid rgba(255, 255, 255, 0.72);
+      font-family: var(--font-display);
+      font-size: clamp(1rem, 1.35vw, 1.24rem);
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-align: center;
+      white-space: nowrap;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      will-change: transform;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        inset 0 3px 0 rgba(255, 255, 255, 0.38),
+        0 6px 0 var(--bubble-shade, rgba(15, 23, 42, 0.25)),
+        0 10px 18px rgba(15, 23, 42, 0.14);
+      transition:
+        box-shadow 0.16s ease,
+        filter 0.16s ease,
+        opacity 0.24s ease;
+    }
+
+    .word-bubble:hover:not(:disabled) {
+      filter: brightness(1.06);
+      z-index: 15;
+    }
+
+    .word-bubble:focus-visible {
+      outline: 4px solid #0f172a;
+      outline-offset: 3px;
+      z-index: 25;
+    }
+
+    /* Active Selected Verb 1 Bubble */
+    .word-bubble.is-selected {
+      z-index: 30;
+      box-shadow:
+        0 0 0 4px #ffffff,
+        0 0 0 8px #0f172a,
+        0 14px 26px rgba(15, 23, 42, 0.28);
+      filter: brightness(1.05);
+    }
+
+    /* Matched Disappear Animation */
+    .word-bubble.is-matched {
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.28s ease, filter 0.28s ease;
+      filter: brightness(1.25);
+    }
+
+    .word-bubble.is-wrong {
+      z-index: 28;
+      box-shadow:
+        0 0 0 3px #ffffff,
+        0 0 0 6px #dc2626,
+        0 10px 20px rgba(220, 38, 38, 0.28);
+    }
+
+    /* ==========================================================================
+       4. START & COMPLETION OVERLAYS
+       ========================================================================== */
+    .overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(241, 245, 249, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: opacity 0.25s ease;
+    }
+
+    .overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+      visibility: hidden;
+    }
+
+    .modal-card {
+      background: var(--surface-solid);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+      box-shadow: var(--shadow-modal);
+      padding: 32px 34px;
+      max-width: 520px;
+      width: 100%;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      position: relative;
+      z-index: 52;
+    }
+
+    .modal-emblem {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #2563eb 0%, #0ea5e9 100%);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 18px rgba(37, 99, 235, 0.28);
+    }
+
+    .modal-emblem.victory {
+      background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+      box-shadow: 0 8px 18px rgba(5, 150, 105, 0.28);
+    }
+
+    .modal-heading {
+      font-family: var(--font-display);
+      font-size: clamp(1.5rem, 2.6vw, 2rem);
+      font-weight: 900;
+      color: var(--ink-primary);
+      line-height: 1.2;
+    }
+
+    .modal-lead {
+      font-size: 1.02rem;
+      line-height: 1.55;
+      color: var(--ink-secondary);
+      max-width: 44ch;
+    }
+
+    .rules-list {
+      width: 100%;
+      text-align: left;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      list-style: none;
+    }
+
+    .rules-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 0.94rem;
+      font-weight: 600;
+      color: var(--ink-primary);
+      line-height: 1.4;
+    }
+
+    .rule-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      background: #dbeafe;
+      color: #1d4ed8;
+      font-family: var(--font-display);
+      font-size: 0.82rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* Completion Stats Grid */
+    .victory-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      width: 100%;
+      margin: 4px 0;
+    }
+
+    .victory-stat-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .victory-stat-label {
+      font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .victory-stat-val {
+      font-family: var(--font-display);
+      font-size: 1.65rem;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      color: var(--ink-primary);
+    }
+
+    .btn-cta-lg {
+      min-height: 50px;
+      padding: 12px 28px;
+      font-size: 1.04rem;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    /* Confetti Canvas */
+    #confettiCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 51;
+    }
+
+    /* ==========================================================================
+       5. RESPONSIVE BREAKPOINTS (Tablets, Laptops, Desktops)
+       ========================================================================== */
+    @media (max-width: 980px) {
+      .dashboard {
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 10px 14px;
+        padding: 10px 14px;
+      }
+
+      .brand-group {
+        grid-column: 1 / 2;
+        grid-row: 1 / 2;
+      }
+
+      .controls-group {
+        grid-column: 2 / 3;
+        grid-row: 1 / 2;
+      }
+
+      .stats-cluster {
+        grid-column: 1 / 3;
+        grid-row: 2 / 3;
+        max-width: none;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell {
+        padding: 10px 10px 12px;
+        gap: 8px;
+      }
+
+      .dashboard {
+        padding: 10px 12px;
+      }
+
+      .game-subtitle {
+        font-size: 0.8rem;
+      }
+
+      .btn {
+        padding: 8px 12px;
+        font-size: 0.84rem;
+      }
+
+      .word-bubble {
+        min-width: 78px;
+        min-height: 44px;
+        padding: 8px 15px;
+        font-size: 0.94rem;
+      }
+
+      .modal-card {
+        padding: 24px 20px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .word-bubble,
+      .progress-fill,
+      .btn {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- TOP GAME DASHBOARD -->
+    <header class="dashboard" aria-label="Game Dashboard">
+      <div class="brand-group">
+        <h1 class="game-title">VERB HUNT</h1>
+        <p class="game-subtitle">Find the correct past-tense pairs!</p>
+      </div>
+
+      <div class="stats-cluster">
+        <div class="metrics-row">
+          <div class="metric-item">
+            <span class="metric-label">Score</span>
+            <span class="metric-value" id="scoreDisplay">0 / 100</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Matches</span>
+            <span class="metric-value" id="matchesDisplay">0 / 10</span>
+          </div>
+          <div class="metric-item">
+            <span class="metric-label">Timer</span>
+            <span class="metric-value" id="timerDisplay">00:00</span>
+          </div>
+        </div>
+        <div class="progress-track" role="progressbar" aria-label="Match progress" aria-valuemin="0" aria-valuemax="10" aria-valuenow="0" id="progressBarTrack">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div class="controls-group">
+        <button type="button" class="btn btn-secondary" id="muteBtn" aria-pressed="false" title="Toggle sound effects">
+          <svg id="soundOnIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="soundOffIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="display:none;">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+          <span id="muteLabel">Sound On</span>
+        </button>
+
+        <button type="button" class="btn btn-primary" id="headerActionBtn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+            <path d="M3 3v5h5"></path>
+          </svg>
+          <span id="headerActionLabel">Restart</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- FEEDBACK & GUIDANCE STRIP -->
+    <div class="feedback-bar" id="feedbackBar" role="status" aria-live="polite">
+      <div class="feedback-content">
+        <span class="feedback-icon" id="feedbackIcon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="20" height="20">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M12 16v-4"></path>
+            <path d="M12 8h.01"></path>
+          </svg>
+        </span>
+        <span id="feedbackText">Press Start Game to match all 10 irregular verb pairs!</span>
+      </div>
+      <button type="button" class="selection-action" id="clearSelectionBtn">Clear Selection</button>
+    </div>
+
+    <!-- MAIN FLOATING ARENA -->
+    <main class="arena-wrapper">
+      <div class="arena" id="arena" aria-label="Floating word bubbles"></div>
+
+      <!-- START SCREEN OVERLAY -->
+      <section class="overlay" id="startOverlay" aria-label="Start Game">
+        <div class="modal-card">
+          <div class="modal-emblem" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+          </div>
+          <h2 class="modal-heading">Simple Past Challenge</h2>
+          <p class="modal-lead">
+            25 floating verb bubbles are ready. Match all 10 base verbs with their past-tense partners!
+          </p>
+          <ul class="rules-list">
+            <li>
+              <span class="rule-num">1</span>
+              <span>Select a base form verb (<strong>Verb 1</strong>) first.</span>
+            </li>
+            <li>
+              <span class="rule-num">2</span>
+              <span>Then tap its matching past-tense form (<strong>Verb 2</strong>) for +10 points.</span>
+            </li>
+            <li>
+              <span class="rule-num">3</span>
+              <span>Watch out for <strong>5 decoy verbs</strong> with no matching pair — leave them alone!</span>
+            </li>
+          </ul>
+          <button type="button" class="btn btn-primary btn-cta-lg" id="startGameBtn">
+            START GAME
+          </button>
+        </div>
+      </section>
+
+      <!-- COMPLETION SCREEN OVERLAY -->
+      <section class="overlay hidden" id="completionOverlay" aria-label="Game Complete">
+        <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+        <div class="modal-card">
+          <div class="modal-emblem victory" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="34" height="34">
+              <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+              <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+              <path d="M4 22h16"></path>
+              <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+              <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+              <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+            </svg>
+          </div>
+          <h2 class="modal-heading">Amazing! You've mastered these irregular verbs!</h2>
+          <div class="victory-stats">
+            <div class="victory-stat-box">
+              <span class="victory-stat-label">Final Score</span>
+              <span class="victory-stat-val" id="finalScoreText">100 / 100</span>
+            </div>
+            <div class="victory-stat-box">
+              <span class="victory-stat-label">Completion Time</span>
+              <span class="victory-stat-val" id="finalTimeText">00:00</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-cta-lg" id="restartVictoryBtn">
+            RESTART GAME
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      /* ========================================================================
+         1. WORD BANK & INDEPENDENT COLOR PALETTE
+         ======================================================================== */
+
+      // Exactly 10 Verb 1 -> Verb 2 pairs
+      const VERB_PAIRS = [
+        { v1: 'GO',    v2: 'WENT' },
+        { v1: 'EAT',   v2: 'ATE' },
+        { v1: 'DRINK', v2: 'DRANK' },
+        { v1: 'SEE',   v2: 'SAW' },
+        { v1: 'WRITE', v2: 'WROTE' },
+        { v1: 'TAKE',  v2: 'TOOK' },
+        { v1: 'BUY',   v2: 'BOUGHT' },
+        { v1: 'SING',  v2: 'SANG' },
+        { v1: 'SPEAK', v2: 'SPOKE' },
+        { v1: 'BREAK', v2: 'BROKE' }
+      ];
+
+      // Exactly 5 decoy Verb 2 words (no matching Verb 1 on screen)
+      const DECOY_WORDS = ['RAN', 'SLEPT', 'DREW', 'FLEW', 'SWAM'];
+
+      // 25 bright, distinct, high-contrast bubble colors.
+      // Shuffled independently on every round so colors NEVER signal pairs or roles.
+      const BUBBLE_PALETTE = [
+        { bg: '#ef4444', shade: '#b91c1c', text: '#ffffff' },
+        { bg: '#ea580c', shade: '#9a3412', text: '#ffffff' },
+        { bg: '#d97706', shade: '#92400e', text: '#ffffff' },
+        { bg: '#eab308', shade: '#a16207', text: '#0f172a' },
+        { bg: '#65a30d', shade: '#3f6212', text: '#ffffff' },
+        { bg: '#059669', shade: '#065f46', text: '#ffffff' },
+        { bg: '#0d9488', shade: '#115e59', text: '#ffffff' },
+        { bg: '#0284c7', shade: '#075985', text: '#ffffff' },
+        { bg: '#2563eb', shade: '#1e40af', text: '#ffffff' },
+        { bg: '#4f46e5', shade: '#3730a3', text: '#ffffff' },
+        { bg: '#7c3aed', shade: '#5b21b6', text: '#ffffff' },
+        { bg: '#c026d3', shade: '#86198f', text: '#ffffff' },
+        { bg: '#e11d48', shade: '#9f1239', text: '#ffffff' },
+        { bg: '#dc2626', shade: '#991b1b', text: '#ffffff' },
+        { bg: '#c2410c', shade: '#7c2d12', text: '#ffffff' },
+        { bg: '#ca8a04', shade: '#854d0e', text: '#ffffff' },
+        { bg: '#16a34a', shade: '#166534', text: '#ffffff' },
+        { bg: '#10b981', shade: '#047857', text: '#0f172a' },
+        { bg: '#0891b2', shade: '#155e75', text: '#ffffff' },
+        { bg: '#38bdf8', shade: '#0369a1', text: '#0f172a' },
+        { bg: '#6366f1', shade: '#3730a3', text: '#ffffff' },
+        { bg: '#9333ea', shade: '#6b21a8', text: '#ffffff' },
+        { bg: '#db2777', shade: '#9d174d', text: '#ffffff' },
+        { bg: '#f43f5e', shade: '#be123c', text: '#ffffff' },
+        { bg: '#2dd4bf', shade: '#0f766e', text: '#0f172a' }
+      ];
+
+      const POSITIVE_MESSAGES = [
+        'Awesome match!',
+        'Spot on!',
+        'Great job!',
+        'Well done!',
+        'Fantastic!'
+      ];
+
+      /* ========================================================================
+         2. DOM REFERENCES & GAME STATE
+         ======================================================================== */
+      const arenaEl = document.getElementById('arena');
+      const scoreDisplayEl = document.getElementById('scoreDisplay');
+      const matchesDisplayEl = document.getElementById('matchesDisplay');
+      const timerDisplayEl = document.getElementById('timerDisplay');
+      const progressBarTrackEl = document.getElementById('progressBarTrack');
+      const progressFillEl = document.getElementById('progressFill');
+
+      const feedbackBarEl = document.getElementById('feedbackBar');
+      const feedbackIconEl = document.getElementById('feedbackIcon');
+      const feedbackTextEl = document.getElementById('feedbackText');
+      const clearSelectionBtn = document.getElementById('clearSelectionBtn');
+
+      const muteBtn = document.getElementById('muteBtn');
+      const soundOnIcon = document.getElementById('soundOnIcon');
+      const soundOffIcon = document.getElementById('soundOffIcon');
+      const muteLabel = document.getElementById('muteLabel');
+
+      const headerActionBtn = document.getElementById('headerActionBtn');
+      const headerActionLabel = document.getElementById('headerActionLabel');
+
+      const startOverlayEl = document.getElementById('startOverlay');
+      const startGameBtn = document.getElementById('startGameBtn');
+
+      const completionOverlayEl = document.getElementById('completionOverlay');
+      const finalScoreTextEl = document.getElementById('finalScoreText');
+      const finalTimeTextEl = document.getElementById('finalTimeText');
+      const restartVictoryBtn = document.getElementById('restartVictoryBtn');
+      const confettiCanvas = document.getElementById('confettiCanvas');
+
+      const state = {
+        phase: 'IDLE', // 'IDLE' | 'PLAYING' | 'COMPLETED'
+        score: 0,
+        matches: 0,
+        elapsedSeconds: 0,
+        timerIntervalId: null,
+        rafId: null,
+        lastFrameTime: 0,
+        selectedBubble: null,
+        bubbles: [],
+        isMuted: false,
+        audioCtx: null,
+        confettiRafId: null
+      };
+
+      /* ========================================================================
+         3. WEB AUDIO SOUND SYNTHESIZER (Offline, No External Files)
+         ======================================================================== */
+      function ensureAudioContext() {
+        if (state.isMuted) return null;
+        if (!state.audioCtx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            state.audioCtx = new AudioCtx();
+          }
+        }
+        if (state.audioCtx && state.audioCtx.state === 'suspended') {
+          state.audioCtx.resume().catch(function () {});
+        }
+        return state.audioCtx;
+      }
+
+      function playTone(freqStart, freqEnd, duration, type, gainPeak, delay) {
+        const ctx = ensureAudioContext();
+        if (!ctx || state.isMuted) return;
+
+        const now = ctx.currentTime + (delay || 0);
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freqStart, now);
+        if (freqEnd && freqEnd !== freqStart) {
+          osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration);
+        }
+
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.linearRampToValueAtTime(gainPeak || 0.14, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      }
+
+      function playSelectSound() {
+        playTone(460, 620, 0.07, 'sine', 0.1, 0);
+      }
+
+      function playCorrectSound() {
+        playTone(523.25, 523.25, 0.11, 'triangle', 0.16, 0);     // C5
+        playTone(659.25, 659.25, 0.11, 'triangle', 0.16, 0.08);  // E5
+        playTone(783.99, 783.99, 0.22, 'triangle', 0.18, 0.16);  // G5
+      }
+
+      function playIncorrectSound() {
+        playTone(220, 175, 0.15, 'triangle', 0.14, 0);
+        playTone(175, 140, 0.18, 'triangle', 0.12, 0.11);
+      }
+
+      function playVictorySound() {
+        playTone(523.25, 523.25, 0.13, 'triangle', 0.16, 0);     // C5
+        playTone(659.25, 659.25, 0.13, 'triangle', 0.16, 0.1);   // E5
+        playTone(783.99, 783.99, 0.13, 'triangle', 0.16, 0.2);   // G5
+        playTone(1046.5, 1046.5, 0.36, 'triangle', 0.2, 0.3);    // C6
+      }
+
+      /* ========================================================================
+         4. UTILITY HELPERS
+         ======================================================================== */
+      function shuffleArray(arr) {
+        const copy = arr.slice();
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const temp = copy[i];
+          copy[i] = copy[j];
+          copy[j] = temp;
+        }
+        return copy;
+      }
+
+      function formatTime(totalSeconds) {
+        const mins = Math.floor(totalSeconds / 60);
+        const secs = totalSeconds % 60;
+        return String(mins).padStart(2, '0') + ':' + String(secs).padStart(2, '0');
+      }
+
+      function setFeedback(text, tone) {
+        feedbackBarEl.classList.remove('is-success', 'is-warning', 'is-error');
+        feedbackTextEl.textContent = text;
+
+        let iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>';
+
+        if (tone === 'success') {
+          feedbackBarEl.classList.add('is-success');
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
+        } else if (tone === 'warning') {
+          feedbackBarEl.classList.add('is-warning');
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>';
+        } else if (tone === 'error') {
+          feedbackBarEl.classList.add('is-error');
+          iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>';
+        }
+
+        feedbackIconEl.innerHTML = iconSvg;
+      }
+
+      function updateDashboardUI() {
+        scoreDisplayEl.textContent = state.score + ' / 100';
+        matchesDisplayEl.textContent = state.matches + ' / 10';
+        timerDisplayEl.textContent = formatTime(state.elapsedSeconds);
+        const pct = Math.round((state.matches / 10) * 100);
+        progressFillEl.style.width = pct + '%';
+        progressBarTrackEl.setAttribute('aria-valuenow', String(state.matches));
+
+        if (state.selectedBubble) {
+          clearSelectionBtn.classList.add('visible');
+        } else {
+          clearSelectionBtn.classList.remove('visible');
+        }
+
+        if (state.phase === 'IDLE') {
+          headerActionLabel.textContent = 'Start Game';
+        } else {
+          headerActionLabel.textContent = 'Restart';
+        }
+      }
+
+      /* ========================================================================
+         5. BUBBLE GENERATION & STRATIFIED LAYOUT (Exact 25 Bubbles)
+         ======================================================================== */
+      function createDeck() {
+        const items = [];
+
+        VERB_PAIRS.forEach(function (pair, idx) {
+          items.push({
+            id: 'v1-' + idx,
+            word: pair.v1,
+            role: 'v1',
+            pairId: idx
+          });
+          items.push({
+            id: 'v2-' + idx,
+            word: pair.v2,
+            role: 'v2',
+            pairId: idx
+          });
+        });
+
+        DECOY_WORDS.forEach(function (word, idx) {
+          items.push({
+            id: 'decoy-' + idx,
+            word: word,
+            role: 'decoy',
+            pairId: -1
+          });
+        });
+
+        // Shuffle all 25 word items and shuffle all 25 colors independently
+        const shuffledItems = shuffleArray(items);
+        const shuffledColors = shuffleArray(BUBBLE_PALETTE);
+
+        return shuffledItems.map(function (item, idx) {
+          return {
+            id: item.id,
+            word: item.word,
+            role: item.role,
+            pairId: item.pairId,
+            color: shuffledColors[idx],
+            matched: false,
+            x: 0,
+            y: 0,
+            vx: 0,
+            vy: 0,
+            w: 100,
+            h: 50,
+            phase: Math.random() * Math.PI * 2,
+            hovered: false,
+            shakeUntil: 0,
+            el: null
+          };
+        });
+      }
+
+      function renderAndPlaceBubbles() {
+        arenaEl.innerHTML = '';
+        state.bubbles = createDeck();
+
+        const arenaW = arenaEl.clientWidth || 900;
+        const arenaH = arenaEl.clientHeight || 520;
+        const pad = 14;
+
+        // First render all 25 buttons into DOM so we can measure exact widths/heights
+        state.bubbles.forEach(function (b) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'word-bubble';
+          btn.textContent = b.word;
+          btn.style.backgroundColor = b.color.bg;
+          btn.style.color = b.color.text;
+          btn.style.setProperty('--bubble-shade', b.color.shade);
+          btn.setAttribute('aria-label', 'Word bubble ' + b.word);
+
+          btn.addEventListener('click', function () {
+            handleBubbleClick(b);
+          });
+
+          btn.addEventListener('pointerenter', function () {
+            b.hovered = true;
+          });
+
+          btn.addEventListener('pointerleave', function () {
+            b.hovered = false;
+          });
+
+          arenaEl.appendChild(btn);
+          b.el = btn;
+          b.w = btn.offsetWidth;
+          b.h = btn.offsetHeight;
+        });
+
+        // Place bubbles into a 5x5 stratified grid with organic jitter
+        // so all 25 start evenly distributed with zero overlap.
+        const cols = 5;
+        const rows = 5;
+        const usableW = Math.max(200, arenaW - pad * 2);
+        const usableH = Math.max(200, arenaH - pad * 2);
+        const cellW = usableW / cols;
+        const cellH = usableH / rows;
+
+        state.bubbles.forEach(function (b, index) {
+          const col = index % cols;
+          const row = Math.floor(index / cols);
+
+          const cellLeft = pad + col * cellW;
+          const cellTop = pad + row * cellH;
+          const maxJitterX = Math.max(0, cellW - b.w);
+          const maxJitterY = Math.max(0, cellH - b.h);
+
+          b.x = clamp(cellLeft + Math.random() * maxJitterX, pad, Math.max(pad, arenaW - b.w - pad));
+          b.y = clamp(cellTop + Math.random() * maxJitterY, pad, Math.max(pad, arenaH - b.h - pad));
+
+          // Smooth arcade cruising velocity across the whole arena (pixels per second)
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 48 + Math.random() * 34;
+          b.vx = Math.cos(angle) * speed;
+          b.vy = Math.sin(angle) * speed;
+        });
+
+        // Spread initial starting positions cleanly before free movement begins
+        keepInsideArena(arenaW, arenaH, pad);
+        syncBubbleTransforms();
+      }
+
+      function clamp(val, min, max) {
+        return Math.max(min, Math.min(max, val));
+      }
+
+      /* ========================================================================
+         6. FREE-ROAMING FLOATING ANIMATION & WALL CONTAINMENT
+         ======================================================================== */
+      function keepInsideArena(arenaW, arenaH, pad) {
+        for (let i = 0; i < state.bubbles.length; i++) {
+          const b = state.bubbles[i];
+          if (b.matched) continue;
+
+          const maxX = Math.max(pad, arenaW - b.w - pad);
+          const maxY = Math.max(pad, arenaH - b.h - pad);
+
+          if (b.x < pad) {
+            b.x = pad;
+            b.vx = Math.abs(b.vx);
+          } else if (b.x > maxX) {
+            b.x = maxX;
+            b.vx = -Math.abs(b.vx);
+          }
+
+          if (b.y < pad) {
+            b.y = pad;
+            b.vy = Math.abs(b.vy);
+          } else if (b.y > maxY) {
+            b.y = maxY;
+            b.vy = -Math.abs(b.vy);
+          }
+        }
+      }
+
+      function syncBubbleTransforms(now) {
+        const ts = now || performance.now();
+        for (let i = 0; i < state.bubbles.length; i++) {
+          const b = state.bubbles[i];
+          if (!b.el) continue;
+          const isSelected = state.selectedBubble && state.selectedBubble.id === b.id;
+          const scale = b.matched ? 1.18 : (isSelected ? 1.09 : (b.hovered ? 1.04 : 1));
+          let shakeX = 0;
+          if (b.shakeUntil > ts) {
+            const remaining = (b.shakeUntil - ts) / 400;
+            shakeX = Math.sin(ts * 0.055) * 9 * remaining;
+          }
+          b.el.style.transform = 'translate3d(' + (b.x + shakeX).toFixed(1) + 'px, ' + b.y.toFixed(1) + 'px, 0) scale(' + scale + ')';
+        }
+      }
+
+      function startFloatingLoop() {
+        stopFloatingLoop();
+        state.lastFrameTime = performance.now();
+
+        function step(now) {
+          if (state.phase === 'COMPLETED') {
+            state.rafId = null;
+            return;
+          }
+
+          const rawDt = (now - state.lastFrameTime) / 1000;
+          state.lastFrameTime = now;
+          const dt = Math.min(rawDt, 0.05);
+
+          const arenaW = arenaEl.clientWidth || 900;
+          const arenaH = arenaEl.clientHeight || 520;
+          const pad = 10;
+
+          const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const motionScale = prefersReduced ? 0.45 : 1;
+
+          for (let i = 0; i < state.bubbles.length; i++) {
+            const b = state.bubbles[i];
+            if (b.matched) continue;
+
+            const isSelected = state.selectedBubble && state.selectedBubble.id === b.id;
+            const speedFactor = ((b.hovered || isSelected) ? 0.3 : 1) * motionScale;
+
+            b.phase += dt * 1.5;
+            const swayX = Math.cos(b.phase) * 6;
+            const swayY = Math.sin(b.phase * 1.15) * 6;
+
+            b.x += (b.vx + swayX) * dt * speedFactor;
+            b.y += (b.vy + swayY) * dt * speedFactor;
+          }
+
+          // Bubbles pass freely through each other; only bounce off outer arena walls
+          keepInsideArena(arenaW, arenaH, pad);
+          syncBubbleTransforms(now);
+          state.rafId = requestAnimationFrame(step);
+        }
+
+        state.rafId = requestAnimationFrame(step);
+      }
+
+      function stopFloatingLoop() {
+        if (state.rafId !== null) {
+          cancelAnimationFrame(state.rafId);
+          state.rafId = null;
+        }
+      }
+
+      /* ========================================================================
+         7. GAMEPLAY & MATCHING MECHANICS
+         ======================================================================== */
+      function clearSelection() {
+        if (state.selectedBubble && state.selectedBubble.el) {
+          state.selectedBubble.el.classList.remove('is-selected');
+        }
+        state.selectedBubble = null;
+        updateDashboardUI();
+      }
+
+      function triggerWrongShake(bubble) {
+        if (!bubble || !bubble.el) return;
+        bubble.shakeUntil = performance.now() + 400;
+        bubble.el.classList.add('is-wrong');
+        setTimeout(function () {
+          if (bubble.el) {
+            bubble.el.classList.remove('is-wrong');
+          }
+        }, 400);
+      }
+
+      function handleBubbleClick(bubble) {
+        if (state.phase !== 'PLAYING' || bubble.matched) return;
+
+        ensureAudioContext();
+
+        // Case A: User clicks the already-selected Verb 1 bubble -> deselect it
+        if (state.selectedBubble && state.selectedBubble.id === bubble.id) {
+          clearSelection();
+          playSelectSound();
+          setFeedback('Selection cleared. Choose a base verb (Verb 1) to match!', 'info');
+          return;
+        }
+
+        // Case B: User clicks any Verb 1 bubble -> select or switch selection at any time
+        if (bubble.role === 'v1') {
+          if (state.selectedBubble && state.selectedBubble.el) {
+            state.selectedBubble.el.classList.remove('is-selected');
+          }
+          state.selectedBubble = bubble;
+          bubble.el.classList.add('is-selected');
+          playSelectSound();
+          updateDashboardUI();
+          setFeedback('Selected "' + bubble.word + '" — Now choose its simple past form!', 'info');
+          return;
+        }
+
+        // Case C: User clicks a Decoy Verb 2 bubble
+        if (bubble.role === 'decoy') {
+          playIncorrectSound();
+          triggerWrongShake(bubble);
+          setFeedback('Not quite! Find another word!', 'warning');
+          return;
+        }
+
+        // Case D: User clicks a Verb 2 bubble
+        if (!state.selectedBubble) {
+          // Requirement 4.3: Students select a Verb 1 bubble first
+          playIncorrectSound();
+          triggerWrongShake(bubble);
+          setFeedback('Select a base verb (Verb 1) first!', 'warning');
+          return;
+        }
+
+        // Compare selected Verb 1 with clicked Verb 2
+        if (state.selectedBubble.pairId === bubble.pairId) {
+          // CORRECT MATCH!
+          const v1Bubble = state.selectedBubble;
+          const v2Bubble = bubble;
+
+          v1Bubble.matched = true;
+          v2Bubble.matched = true;
+          v1Bubble.el.classList.remove('is-selected');
+          v1Bubble.el.classList.add('is-matched');
+          v2Bubble.el.classList.add('is-matched');
+          v1Bubble.el.disabled = true;
+          v2Bubble.el.disabled = true;
+
+          state.selectedBubble = null;
+          state.score += 10;
+          state.matches += 1;
+
+          playCorrectSound();
+          updateDashboardUI();
+
+          const praise = POSITIVE_MESSAGES[state.matches % POSITIVE_MESSAGES.length];
+          setFeedback(praise + ' ' + v1Bubble.word + ' → ' + v2Bubble.word + ' (+10 points)', 'success');
+
+          // Check win condition (all 10 pairs matched)
+          if (state.matches >= VERB_PAIRS.length) {
+            completeGame();
+          }
+        } else {
+          // INCORRECT MATCH (wrong Verb 2 for the selected Verb 1)
+          playIncorrectSound();
+          triggerWrongShake(bubble);
+          setFeedback('Oops! Try Again!', 'error');
+        }
+      }
+
+      /* ========================================================================
+         8. TIMER, START, RESTART & COMPLETION FLOW
+         ======================================================================== */
+      function startTimer() {
+        stopTimer();
+        state.timerIntervalId = setInterval(function () {
+          state.elapsedSeconds += 1;
+          timerDisplayEl.textContent = formatTime(state.elapsedSeconds);
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (state.timerIntervalId !== null) {
+          clearInterval(state.timerIntervalId);
+          state.timerIntervalId = null;
+        }
+      }
+
+      function startGame() {
+        ensureAudioContext();
+        stopConfetti();
+        stopTimer();
+
+        state.phase = 'PLAYING';
+        state.score = 0;
+        state.matches = 0;
+        state.elapsedSeconds = 0;
+        state.selectedBubble = null;
+
+        startOverlayEl.classList.add('hidden');
+        completionOverlayEl.classList.add('hidden');
+
+        renderAndPlaceBubbles();
+        updateDashboardUI();
+        setFeedback('Step 1: Select a base verb (Verb 1), then match its past form!', 'info');
+
+        startTimer();
+        startFloatingLoop();
+      }
+
+      function completeGame() {
+        state.phase = 'COMPLETED';
+        stopTimer();
+        // Stop all floating animations immediately on completion
+        stopFloatingLoop();
+        clearSelection();
+
+        finalScoreTextEl.textContent = state.score + ' / 100';
+        finalTimeTextEl.textContent = formatTime(state.elapsedSeconds);
+
+        setTimeout(function () {
+          playVictorySound();
+          completionOverlayEl.classList.remove('hidden');
+          launchConfetti();
+        }, 320);
+      }
+
+      /* ========================================================================
+         9. CELEBRATORY CONFETTI CANVAS ANIMATION
+         ======================================================================== */
+      function stopConfetti() {
+        if (state.confettiRafId !== null) {
+          cancelAnimationFrame(state.confettiRafId);
+          state.confettiRafId = null;
+        }
+        const ctx = confettiCanvas.getContext('2d');
+        if (ctx) {
+          ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+        }
+      }
+
+      function launchConfetti() {
+        stopConfetti();
+        const ctx = confettiCanvas.getContext('2d');
+        if (!ctx) return;
+
+        const rect = completionOverlayEl.getBoundingClientRect();
+        const w = Math.max(300, Math.floor(rect.width));
+        const h = Math.max(300, Math.floor(rect.height));
+        confettiCanvas.width = w;
+        confettiCanvas.height = h;
+
+        const colors = ['#2563eb', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#ef4444'];
+        const pieces = [];
+
+        for (let i = 0; i < 130; i++) {
+          pieces.push({
+            x: Math.random() * w,
+            y: Math.random() * -h * 0.8,
+            sizeW: 7 + Math.random() * 7,
+            sizeH: 5 + Math.random() * 6,
+            vx: (Math.random() - 0.5) * 2.4,
+            vy: 2.2 + Math.random() * 3.2,
+            rot: Math.random() * Math.PI * 2,
+            vRot: (Math.random() - 0.5) * 0.16,
+            color: colors[i % colors.length]
+          });
+        }
+
+        function drawFrame() {
+          if (state.phase !== 'COMPLETED') {
+            stopConfetti();
+            return;
+          }
+
+          ctx.clearRect(0, 0, w, h);
+
+          for (let i = 0; i < pieces.length; i++) {
+            const p = pieces[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.vRot;
+
+            if (p.y > h + 20) {
+              p.y = -15;
+              p.x = Math.random() * w;
+            }
+
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.sizeW / 2, -p.sizeH / 2, p.sizeW, p.sizeH);
+            ctx.restore();
+          }
+
+          state.confettiRafId = requestAnimationFrame(drawFrame);
+        }
+
+        state.confettiRafId = requestAnimationFrame(drawFrame);
+      }
+
+      /* ========================================================================
+         10. EVENT WIRING & RESPONSIVE RESIZE HANDLING
+         ======================================================================== */
+      startGameBtn.addEventListener('click', startGame);
+
+      headerActionBtn.addEventListener('click', function () {
+        startGame();
+      });
+
+      restartVictoryBtn.addEventListener('click', startGame);
+
+      clearSelectionBtn.addEventListener('click', function () {
+        if (state.phase !== 'PLAYING') return;
+        clearSelection();
+        playSelectSound();
+        setFeedback('Selection cleared. Choose a base verb (Verb 1) to match!', 'info');
+      });
+
+      muteBtn.addEventListener('click', function () {
+        state.isMuted = !state.isMuted;
+        muteBtn.setAttribute('aria-pressed', String(state.isMuted));
+
+        if (state.isMuted) {
+          soundOnIcon.style.display = 'none';
+          soundOffIcon.style.display = 'block';
+          muteLabel.textContent = 'Muted';
+          muteBtn.classList.add('btn-muted');
+        } else {
+          soundOnIcon.style.display = 'block';
+          soundOffIcon.style.display = 'none';
+          muteLabel.textContent = 'Sound On';
+          muteBtn.classList.remove('btn-muted');
+          ensureAudioContext();
+          playSelectSound();
+        }
+      });
+
+      function handleArenaResize() {
+        const arenaW = arenaEl.clientWidth;
+        const arenaH = arenaEl.clientHeight;
+        if (!arenaW || !arenaH) return;
+
+        // Re-measure bubble dimensions in case responsive CSS changed font/padding
+        state.bubbles.forEach(function (b) {
+          if (b.el && !b.matched) {
+            b.w = b.el.offsetWidth;
+            b.h = b.el.offsetHeight;
+          }
+        });
+
+        keepInsideArena(arenaW, arenaH, 10);
+        syncBubbleTransforms();
+
+        if (state.phase === 'COMPLETED') {
+          const rect = completionOverlayEl.getBoundingClientRect();
+          confettiCanvas.width = Math.max(300, Math.floor(rect.width));
+          confettiCanvas.height = Math.max(300, Math.floor(rect.height));
+        }
+      }
+
+      if (typeof ResizeObserver !== 'undefined') {
+        const ro = new ResizeObserver(handleArenaResize);
+        ro.observe(arenaEl);
+      } else {
+        window.addEventListener('resize', handleArenaResize);
+      }
+
+      /* ========================================================================
+         11. INITIALIZE IDLE PREVIEW BOARD ON LOAD
+         ======================================================================== */
+      renderAndPlaceBubbles();
+      updateDashboardUI();
+      startFloatingLoop();
+    })();
+  </script>
+</body>
+</html>
